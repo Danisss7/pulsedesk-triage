@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PulseDesk Triage</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --panel-2: #1f2937;
+            --border: #374151;
+            --text: #f9fafb;
+            --muted: #9ca3af;
+            --accent: #38bdf8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+            color: var(--text);
+        }
+
+        .container {
+            width: min(1100px, 92%);
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin: 12px 0 6px;
+            font-weight: 600;
+        }
+
+        textarea, select, input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--panel-2);
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 16px;
+            background: var(--accent);
+            color: #08111f;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.92;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            margin-left: 8px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .status {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        .status.success {
+            display: block;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #bbf7d0;
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #fecaca;
+        }
+
+        .list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .item {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .item-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .badge.billing { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+        .badge.account { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
+        .badge.bug { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
+        .badge.feature { background: rgba(34, 197, 94, 0.18); color: #86efac; }
+        .badge.other { background: rgba(156, 163, 175, 0.18); color: #d1d5db; }
+
+        .priority {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .priority.high { color: #fca5a5; }
+        .priority.medium { color: #fcd34d; }
+        .priority.low { color: #86efac; }
+
+        .muted {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .comment-text, .summary {
+            line-height: 1.5;
+            margin: 8px 0;
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>PulseDesk</h1>
+    <div class="subtitle">Comment-to-ticket triage demo powered by Spring Boot + Hugging Face</div>
+
+    <div class="grid">
+        <section class="card">
+            <h2>Submit comment</h2>
+
+            <label for="source">Source</label>
+            <select id="source">
+                <option value="web-form">web-form</option>
+                <option value="app-review">app-review</option>
+                <option value="chat-widget">chat-widget</option>
+                <option value="email">email</option>
+            </select>
+
+            <label for="commentText">Comment</label>
+            <textarea id="commentText" placeholder="Enter a user comment..."></textarea>
+
+            <div class="toolbar">
+                <button id="submitBtn">Submit comment</button>
+                <button class="secondary-btn" id="loadBtn" type="button">Refresh data</button>
+            </div>
+
+            <div id="statusBox" class="status"></div>
+        </section>
+
+        <section class="card">
+            <h2>Quick examples</h2>
+            <div class="list">
+                <div class="item" onclick="fillExample('I was charged twice for my subscription and cannot download my invoice.', 'web-form')">
+                    <strong>Billing</strong>
+                    <div class="muted">I was charged twice for my subscription and cannot download my invoice.</div>
+                </div>
+                <div class="item" onclick="fillExample('I reset my password but I still cannot log in to my account.', 'chat-widget')">
+                    <strong>Account</strong>
+                    <div class="muted">I reset my password but I still cannot log in to my account.</div>
+                </div>
+                <div class="item" onclick="fillExample('The app crashes every time I try to upload a profile picture.', 'app-review')">
+                    <strong>Bug</strong>
+                    <div class="muted">The app crashes every time I try to upload a profile picture.</div>
+                </div>
+                <div class="item" onclick="fillExample('Please add dark mode and CSV export for reports.', 'web-form')">
+                    <strong>Feature</strong>
+                    <div class="muted">Please add dark mode and CSV export for reports.</div>
+                </div>
+                <div class="item" onclick="fillExample('Love the app, great job team.', 'app-review')">
+                    <strong>Compliment</strong>
+                    <div class="muted">Love the app, great job team.</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="grid" style="margin-top: 20px;">
+        <section class="card">
+            <h2>Comments</h2>
+            <div id="commentsList" class="list"></div>
+        </section>
+
+        <section class="card">
+            <h2>Tickets</h2>
+            <div id="ticketsList" class="list"></div>
+        </section>
+    </div>
+</div>
+
+<script>
+    const commentsList = document.getElementById("commentsList");
+    const ticketsList = document.getElementById("ticketsList");
+    const statusBox = document.getElementById("statusBox");
+    const submitBtn = document.getElementById("submitBtn");
+    const loadBtn = document.getElementById("loadBtn");
+
+    function showStatus(message, type = "success") {
+        statusBox.className = `status ${type}`;
+        statusBox.textContent = message;
+    }
+
+    function fillExample(text, source) {
+        document.getElementById("commentText").value = text;
+        document.getElementById("source").value = source;
+    }
+
+    async function fetchComments() {
+        const response = await fetch("/comments");
+        if (!response.ok) throw new Error("Failed to load comments");
+        return response.json();
+    }
+
+    async function fetchTickets() {
+        const response = await fetch("/tickets");
+        if (!response.ok) throw new Error("Failed to load tickets");
+        return response.json();
+    }
+
+    function renderComments(comments) {
+        commentsList.innerHTML = "";
+        if (!comments.length) {
+            commentsList.innerHTML = `<div class="muted">No comments yet.</div>`;
+            return;
+        }
+
+        comments.forEach(comment => {
+            const item = document.createElement("div");
+            item.className = "item";
+
+            item.innerHTML = `
+                <div class="item-top">
+                    <strong>#${comment.id} • ${comment.source || "unknown"}</strong>
+                    <span class="muted">${comment.createdAt || ""}</span>
+                </div>
+                <div class="comment-text">${escapeHtml(comment.text)}</div>
+                <div class="muted">
+                    analyzed: <strong>${comment.analyzed}</strong> |
+                    shouldCreateTicket: <strong>${comment.shouldCreateTicket}</strong> |
+                    ticketId: <strong>${comment.ticketId ?? "-"}</strong>
+                </div>
+            `;
+            commentsList.appendChild(item);
+        });
+    }
+
+    function renderTickets(tickets) {
+        ticketsList.innerHTML = "";
+        if (!tickets.length) {
+            ticketsList.innerHTML = `<div class="muted">No tickets created yet.</div>`;
+            return;
+        }
+
+        tickets.forEach(ticket => {
+            const item = document.createElement("div");
+            item.className = "item";
+
+            const category = ticket.category || "other";
+            const priority = ticket.priority || "low";
+
+            item.innerHTML = `
+                <div class="item-top">
+                    <strong>#${ticket.id} • ${escapeHtml(ticket.title || "Untitled")}</strong>
+                    <span class="priority ${priority}">${priority}</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <span class="badge ${category}">${category}</span>
+                </div>
+                <div class="summary">${escapeHtml(ticket.summary || "")}</div>
+                <div class="muted">commentId: ${ticket.commentId}</div>
+            `;
+            ticketsList.appendChild(item);
+        });
+    }
+
+    async function loadData() {
+        try {
+            const [comments, tickets] = await Promise.all([
+                fetchComments(),
+                fetchTickets()
+            ]);
+            renderComments(comments);
+            renderTickets(tickets);
+        } catch (err) {
+            showStatus(err.message, "error");
+            console.error("loadData error:", err);
+        }
+    }
+
+    async function submitComment() {
+        const text = document.getElementById("commentText").value.trim();
+        const source = document.getElementById("source").value;
+
+        if (!text) {
+            showStatus("Please enter a comment before submitting.", "error");
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
+
+        try {
+            const response = await fetch("/comments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ text, source })
+            });
+
+            const rawText = await response.text();
+            console.log("Raw /comments response:", rawText);
+
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (e) {
+                console.error("Invalid JSON from backend:", rawText);
+                throw new Error("Backend returned invalid JSON. Check server logs.");
+            }
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to submit comment");
+            }
+
+            showStatus(
+                data.shouldCreateTicket
+                    ? `Comment analyzed successfully. Ticket #${data.ticketId} was created.`
+                    : "Comment analyzed successfully. No ticket was created.",
+                "success"
+            );
+
+            document.getElementById("commentText").value = "";
+            await loadData();
+        } catch (err) {
+            showStatus(err.message, "error");
+            console.error("submitComment error:", err);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Submit comment";
+        }
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return "";
+        return String(str)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    submitBtn.addEventListener("click", submitComment);
+    loadBtn.addEventListener("click", loadData);
+
+    loadData();
+</script>
+</body>
+</html>
