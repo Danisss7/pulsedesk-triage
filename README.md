@@ -22,6 +22,7 @@ Comments and tickets are stored in an embedded H2 database and exposed through R
 - H2 Database
 - Hugging Face Inference API
 - Maven
+- Docker (multi-stage image)
 
 ## Features
 
@@ -131,6 +132,8 @@ cd pulsedesk-triage
 $env:HF_API_TOKEN="your_huggingface_token_here"
 ```
 
+(Use the same environment variable name in any other shell, e.g. `export HF_API_TOKEN=...` on Linux/macOS.)
+
 ### 3. Run the app
 
 ```bash
@@ -210,29 +213,28 @@ Invoke-RestMethod -Method Get -Uri "http://localhost:8080/tickets"
 ## Example comments
 
 ### Billing
+
 `I was charged twice for my subscription and cannot download my invoice.`
 
 ### Account
+
 `I reset my password but I still cannot log in to my account.`
 
 ### Bug
+
 `The app crashes every time I try to upload a profile picture.`
 
 ### Feature
+
 `Please add dark mode and CSV export for reports.`
 
 ### Compliment
+
 `Love the app, great job team.`
 
 ## Docker
 
-This project can also be run with Docker.
-
-### Build the JAR
-
-```bash
-mvn clean package
-```
+This project can also be run with Docker. The Dockerfile uses a multi-stage build, so Maven packaging happens inside the image build.
 
 ### Build the Docker image
 
@@ -244,4 +246,10 @@ docker build -t pulsedesk-triage .
 
 ```bash
 docker run -p 8080:8080 -e HF_API_TOKEN=your_huggingface_token_here pulsedesk-triage
+```
+
+The application will then be available at:
+
+```text
+http://localhost:8080
 ```
